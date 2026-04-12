@@ -361,4 +361,4 @@ mern-ecommerce/
 ├── Procfile                ← EB process definition
 ├── package.json            ← Root scripts
 └── README.md
-```
+```   # Updated
