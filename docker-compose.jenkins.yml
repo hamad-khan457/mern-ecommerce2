@@ -1,0 +1,76 @@
+version: "3.9"
+
+# Part-II — Jenkins CI/CD Build Environment
+# Changes from Part-I:
+#   - Code mounted as volume instead of baked into image
+#   - Different container names and port numbers (5001 instead of 5000)
+
+services:
+
+  postgres_ci:
+    image: postgres:15-alpine
+    container_name: ecommerce_db_ci
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${DB_NAME}
+      POSTGRES_USER:     ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_ci_data:/var/lib/postgresql/data
+    networks:
+      - ecommerce_ci_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend_ci:
+    image: node:18-alpine
+    container_name: ecommerce_backend_ci
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    command: sh -c "npm install && node server.js"
+    depends_on:
+      postgres_ci:
+        condition: service_healthy
+    environment:
+      NODE_ENV:    development
+      PORT:        5001
+      DB_HOST:     postgres_ci
+      DB_PORT:     5432
+      DB_NAME:     ${DB_NAME}
+      DB_USER:     ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET:  ${JWT_SECRET}
+      CLIENT_URL:  "*"
+      AWS_REGION:          ${AWS_REGION}
+      AWS_ACCESS_KEY_ID:   ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      S3_BUCKET_NAME:      ${S3_BUCKET_NAME}
+    ports:
+      - "5001:5001"
+    networks:
+      - ecommerce_ci_net
+
+  frontend_ci:
+    image: nginx:alpine
+    container_name: ecommerce_frontend_ci
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "8081:80"
+    networks:
+      - ecommerce_ci_net
+    depends_on:
+      - backend_ci
+
+volumes:
+  postgres_ci_data:
+    driver: local
+
+networks:
+  ecommerce_ci_net:
+    driver: bridge
