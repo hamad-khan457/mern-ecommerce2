@@ -23,7 +23,7 @@ A full-featured clothing e-commerce store converted 1-to-1 from the original Dja
 | Gunicorn + EC2        | Node.js on **AWS EC2**                 |
 | Manual deploy         | **AWS Elastic Beanstalk** PaaS         |
 
----
+
 
 ## AWS Services Used (Assignment Requirements)
 
