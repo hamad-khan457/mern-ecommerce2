@@ -1,7 +1,6 @@
 # DjEcommerce — MERN Edition
 ### Django E-Commerce converted to React + Node.js + PostgreSQL, deployed on AWS
 
----
 
 ## What This App Does
 
